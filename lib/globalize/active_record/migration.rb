@@ -82,14 +82,17 @@ module Globalize
         end
 
         def add_translation_fields
-          connection.change_table(translations_table_name) do |t|
-            fields.each do |name, options|
-              if options.is_a? Hash
-                t.column name, options.delete(:type), options
-              else
-                t.column name, options
+          begin
+            connection.change_table(translations_table_name) do |t|
+              fields.each do |name, options|
+                if options.is_a? Hash
+                  t.column name, options.delete(:type), options
+                else
+                  t.column name, options
+                end
               end
             end
+          rescue ActiveRecord::StatementInvalid
           end
         end
 
@@ -117,11 +120,13 @@ module Globalize
 
         def move_data_to_translation_table
           model.find_each do |record|
+            dirty = false
             translation = record.translation_for(I18n.default_locale) || record.translations.build(:locale => I18n.default_locale)
             fields.each do |attribute_name, attribute_type|
               translation[attribute_name] = record.read_attribute(attribute_name, {:translated => false})
+              dirty = true unless translation[attribute_name].empty?
             end
-            translation.save!
+            translation.save! if dirty
           end
         end
 
