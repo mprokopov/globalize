@@ -77,7 +77,7 @@ module Globalize
             t.string :locale, :null => false
             t.timestamps :null => false
           end
-          rescue Exceptions
+          rescue ActiveRecord::StatementInvalid
           end
         end
 
