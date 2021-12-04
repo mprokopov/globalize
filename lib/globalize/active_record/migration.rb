@@ -24,6 +24,10 @@ module Globalize
           @model = model
         end
 
+        def fields=(fields)
+          @fields=fields
+        end
+
         def create_translation_table!(fields = {}, options = {})
           @fields = fields
           # If we have fields we only want to create the translation table with those fields
@@ -67,10 +71,13 @@ module Globalize
         end
 
         def create_translation_table
+          begin
           connection.create_table(translations_table_name) do |t|
             t.references table_name.sub(/^#{table_name_prefix}/, '').singularize, :null => false
             t.string :locale, :null => false
             t.timestamps :null => false
+          end
+          rescue Exceptions
           end
         end
 
